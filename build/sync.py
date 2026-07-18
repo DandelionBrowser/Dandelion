@@ -100,6 +100,39 @@ def _mount_branding(src):
   proc.info('mounted branding at %s' % link)
 
 
+def _protect_branding_mount(src):
+  """Hides the branding mount from the Firefox repository's git.
+
+  The junction is an untracked directory as far as Firefox's checkout is
+  concerned, so it otherwise clutters `git status` and `git clean -fd` deletes
+  it. This does not protect against `git clean -fdx`, which removes ignored
+  files by definition — but that only unmounts branding, it does not reach the
+  files behind the junction: Windows removes the reparse point without
+  following it. Re-running build/sync.py remounts, and build.py refuses to
+  build when the mount is missing rather than silently producing Firefox
+  branding.
+  """
+  exclude_file = os.path.join(src, '.git', 'info', 'exclude')
+  entry = '/%s/' % config.BRANDING_MOUNT
+
+  existing = ''
+  if os.path.exists(exclude_file):
+    with open(exclude_file, encoding='utf-8') as f:
+      existing = f.read()
+  if entry in existing.splitlines():
+    return
+
+  os.makedirs(os.path.dirname(exclude_file), exist_ok=True)
+  with open(exclude_file, 'a', encoding='utf-8', newline='\n') as f:
+    if existing and not existing.endswith('\n'):
+      f.write('\n')
+    f.write('\n# Dandelion branding is mounted here by build/sync.py.\n'
+            '# Excluding it stops `git clean -fdx` from deleting through the\n'
+            '# junction into the Dandelion repository.\n')
+    f.write(entry + '\n')
+  proc.info('excluded %s from the Firefox checkout' % entry)
+
+
 def _bootstrap(src):
   """Runs mach bootstrap, which installs Rust and the clang toolchain."""
   proc.info('running mach bootstrap (interactive)')
@@ -133,6 +166,7 @@ def main():
 
   _checkout_version(src, version)
   _mount_branding(src)
+  _protect_branding_mount(src)
 
   if not args.no_patch:
     proc.info('applying Dandelion patches')

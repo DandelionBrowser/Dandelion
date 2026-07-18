@@ -110,6 +110,28 @@ class MountBrandingTest(unittest.TestCase):
     with self.assertRaises(proc.CommandError):
       sync._mount_branding(self.src)
 
+  def test_exclude_is_written_once(self):
+    exclude = os.path.join(self.src, '.git', 'info', 'exclude')
+    os.makedirs(os.path.dirname(exclude))
+    with open(exclude, 'w', encoding='utf-8') as f:
+      f.write('# pre-existing\n')
+
+    sync._protect_branding_mount(self.src)
+    sync._protect_branding_mount(self.src)  # Must not duplicate.
+
+    with open(exclude, encoding='utf-8') as f:
+      contents = f.read()
+    entry = '/%s/' % config.BRANDING_MOUNT
+    self.assertEqual(contents.count(entry), 1)
+    self.assertIn('# pre-existing', contents)
+
+  def test_exclude_is_created_when_absent(self):
+    sync._protect_branding_mount(self.src)
+
+    exclude = os.path.join(self.src, '.git', 'info', 'exclude')
+    with open(exclude, encoding='utf-8') as f:
+      self.assertIn('/%s/' % config.BRANDING_MOUNT, f.read())
+
   def test_mount_reports_an_incomplete_checkout(self):
     empty = os.path.join(os.path.dirname(self.src), 'empty-src')
     os.makedirs(empty)
