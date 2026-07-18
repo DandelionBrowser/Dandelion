@@ -71,6 +71,16 @@ def _bootstrap_checkout(root):
   """Performs the initial ~100 GB fetch when no checkout exists yet."""
   proc.info('no Chromium checkout found; fetching (this takes hours)')
   os.makedirs(root, exist_ok=True)
+
+  # `fetch` refuses to run in a directory that already has a .gclient file.
+  # One can be left behind by an earlier run that was interrupted before the
+  # clone created src/.git, which is easy to do during a multi-hour download.
+  # It is regenerated immediately after this, so discarding it is safe.
+  stale = os.path.join(root, '.gclient')
+  if os.path.exists(stale):
+    proc.warn('discarding incomplete checkout config %s' % stale)
+    os.remove(stale)
+
   proc.run(['fetch', '--nohooks', 'chromium'], cwd=root)
 
 
