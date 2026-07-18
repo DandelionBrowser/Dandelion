@@ -1,134 +1,82 @@
 # Building Dandelion
 
-Dandelion builds from Chromium source with GN and Ninja. Expect the first build
-to take hours; incremental builds after it take minutes.
+Dandelion builds from Firefox source with `mach`.
 
 ## Requirements
 
 | | |
 | --- | --- |
-| Disk | ~100 GB checkout + ~60 GB per build configuration |
-| RAM | 16 GB minimum, 32 GB recommended |
+| Disk | ~40 GB for the checkout and one build configuration |
+| RAM | 8 GB minimum, 16 GB+ recommended |
 | OS | Windows 10/11 x64 (macOS and Linux are not yet wired up) |
 
 ### Windows
 
-1. **Visual Studio 2022 or 2026** with the *Desktop development with C++*
-   workload, plus the **C++ ATL** and **C++ MFC** components. Build Tools
-   editions are sufficient — the full IDE is not required.
-2. **Windows SDK 10.0.26100.0** exactly. Chromium pins this version in
-   `build/vs_toolchain.py`; other versions are rejected.
-3. **Debugging Tools for Windows**. Chromium requires `dbghelp.dll` from
-   `<SDK>\Debuggers\x64` and fails the build without it. The SDK installed via
-   the Visual Studio installer omits this, so install it from the standalone
-   [Windows SDK installer](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/):
+1. **[MozillaBuild](https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuild-Latest.exe)**.
+   Firefox cannot build on Windows without it; it supplies the Unix tools the
+   build system shells out to. Install to the default `C:\mozilla-build`.
+2. **Visual Studio 2022 or later** with the *Desktop development with C++*
+   workload and the Windows SDK. Build Tools editions are sufficient.
+3. **Rust and clang**, installed for you by `mach bootstrap` — see below.
 
-   ```sh
-   winsdksetup.exe /features OptionId.WindowsDesktopDebuggers
-   ```
-
-4. **depot_tools**, cloned with full history (a shallow clone breaks its
-   self-update) and added to `PATH`:
-
-   ```sh
-   git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git C:\src\depot_tools
-   ```
-
-5. **Long paths enabled**, or the checkout will fail on deeply nested files:
-
-   ```sh
-   reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f
-   ```
-
-### Environment
-
-```sh
-setx DEPOT_TOOLS_WIN_TOOLCHAIN 0
-```
-
-`DEPOT_TOOLS_WIN_TOOLCHAIN=0` tells depot_tools to use your local Visual Studio
-rather than Google's internal packaged toolchain, which is unavailable outside
-Google.
-
-Chromium locates Visual Studio 2026 under `%ProgramFiles%\Microsoft Visual
-Studio\18`. If yours installed elsewhere — the Build Tools edition commonly
-lands in `Program Files (x86)` — point Chromium at it explicitly, otherwise
-detection fails:
-
-```sh
-setx vs2026_install "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools"
-```
-
-Verify detection before starting a checkout:
-
-```sh
-python <chromium>\build\vs_toolchain.py get_toolchain_dir
-```
+The checkout path must contain **no spaces**; Firefox will not build from one.
+`build/sync.py` refuses such a path rather than letting the build fail later.
 
 ## Checkout
 
 ```sh
-python build/sync.py
+python build\sync.py --bootstrap
 ```
 
-This fetches Chromium at the version pinned in `CHROMIUM_VERSION`, mounts this
-repository into it as `src/dandelion`, and applies Dandelion's patches. The
-checkout defaults to `C:\src\chromium`; override it with
-`DANDELION_CHROMIUM_ROOT`.
+This clones Firefox at the release pinned in `FIREFOX_VERSION`, mounts
+`branding/` into the tree as `browser/branding/dandelion`, applies Dandelion's
+patches, and runs `mach bootstrap` to install Rust and clang.
 
-The path is deliberately short. Several tools in the Chromium build still break
-on long paths even with `LongPathsEnabled` set.
+The checkout defaults to `C:\src\firefox`; override it with
+`DANDELION_FIREFOX_SRC`. Re-running is safe — an interrupted clone resumes.
 
-The first checkout downloads roughly 100 GB and takes hours. It is safe to
-re-run: an interrupted sync resumes, and a partial checkout is repaired rather
-than restarted. Capture the output, because a failure hours in is otherwise
-invisible:
-
-```sh
-python build\sync.py --no-hooks 2>&1 | Tee-Object sync.log
-```
-
-`--no-hooks` skips the toolchain setup step, so the download can run before
-Visual Studio's ATL/MFC components and the Debugging Tools are installed. Run
-`gclient runhooks` in the checkout afterwards to complete it.
-
-Chromium is fetched at tip-of-tree and then moved to the pinned release tag, so
-dependencies are synced twice. This is the flow Chromium's own release-branch
-instructions prescribe; the second pass is mostly local checkouts.
-
-Note that the environment variables above are only picked up by shells started
-after they were set. Open a new terminal before running the checkout.
-
-## Tests
-
-The build tooling has its own tests, which run against synthetic git
-repositories and need neither depot_tools nor a Chromium checkout:
-
-```sh
-python build/run_tests.py
-```
+Drop `--bootstrap` if the toolchain is already installed. Add `--depth 1` for a
+shallow clone, at the cost of needing `git fetch --unshallow` before your first
+Firefox roll.
 
 ## Build
 
 ```sh
-python build/build.py                     # dev config, chrome target
-python build/build.py --config release
-python build/build.py --target unit_tests
+python build\build.py                    # dev: full build, ~30-60 min
+python build\build.py --config artifact  # frontend only, ~1-2 min
+python build\build.py --run              # build, then launch
 ```
 
-`dev` is a component build with DCHECKs on — the configuration to develop
-against. `release` is the shipping configuration: official, statically linked
-and profile-guided, and far slower to build.
+**`dev`** is a full local build. Branding is compiled into the binary, so this
+is the configuration a rebrand needs.
 
-To override GN arguments locally without modifying tracked files, create
-`build/args/local.gn`. It is appended to the generated `args.gn` and is ignored
-by git.
+**`artifact`** downloads prebuilt C++ and compiles only the frontend. This is
+what makes a Gecko fork pleasant to work on: use it for chrome JavaScript, CSS
+and markup. It cannot express changes to compiled code, including branding.
 
-## Running
+Each configuration has its own object directory, so switching between them
+never forces a rebuild of the other.
+
+Any other mach command can be passed through:
 
 ```sh
-C:\src\chromium\src\out\dev\chrome.exe --user-data-dir=C:\src\dandelion-profile
+python build\build.py --mach package
 ```
 
-Always pass `--user-data-dir` so that development runs cannot corrupt a real
-browser profile.
+## Branding assets
+
+`branding/icon.png` is the only artwork under source control. After changing
+it, regenerate the icons, tiles and installer bitmaps Firefox expects:
+
+```sh
+python build\generate_branding_assets.py
+```
+
+## Tests
+
+The build tooling has its own tests, which run against synthetic git
+repositories and need no Firefox checkout:
+
+```sh
+python build\run_tests.py
+```

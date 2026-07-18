@@ -4,11 +4,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-"""Applies Dandelion's patches to the Chromium checkout.
+"""Applies Dandelion's patches to the Firefox checkout.
 
 Patches already present are skipped, so this is safe to re-run. Conflicts are
 reported per-file rather than aborting on the first failure, because after a
-Chromium roll it is far more useful to see the whole list at once.
+Firefox roll it is far more useful to see the whole list at once.
 
 Usage:
   python build/apply_patches.py
@@ -34,10 +34,10 @@ def main():
            'discarding any local edits to it')
   args = parser.parse_args()
 
-  src = config.chromium_src()
+  src = config.firefox_src()
   if not os.path.isdir(os.path.join(src, '.git')):
     raise proc.CommandError(
-        'no Chromium checkout at %s; run build/sync.py first' % src)
+        'no Firefox checkout at %s; run build/sync.py first' % src)
 
   patches = patching.list_patches()
   if not patches:
@@ -60,7 +60,7 @@ def main():
 
   if failures:
     proc.error('%d of %d patches failed' % (len(failures), len(patches)))
-    proc.warn('after a Chromium roll, rebase each failing patch by hand, then '
+    proc.warn('after a Firefox roll, rebase each failing patch by hand, then '
               'run build/update_patches.py to regenerate it')
     return 1
 

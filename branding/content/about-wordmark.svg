@@ -1,0 +1,10 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 48" width="300" height="48"
+     role="img" aria-label="Dandelion">
+  <text x="0" y="35"
+        font-family="Segoe UI, system-ui, -apple-system, Helvetica, Arial, sans-serif"
+        font-size="36" font-weight="600" letter-spacing="-0.5"
+        fill="context-fill #f5c451">Dandelion</text>
+</svg>

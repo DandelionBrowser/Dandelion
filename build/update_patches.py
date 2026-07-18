@@ -4,9 +4,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-"""Regenerates patches/ from the current state of the Chromium checkout.
+"""Regenerates patches/ from the current state of the Firefox checkout.
 
-Edit upstream files directly in the Chromium tree, then run this to capture
+Edit upstream files directly in the Firefox tree, then run this to capture
 those edits as patches. Patch files are never written by hand.
 
 A patch whose target file is no longer modified is stale: the change was either
@@ -45,10 +45,10 @@ def main():
                       help='delete patches whose target is no longer modified')
   args = parser.parse_args()
 
-  src = config.chromium_src()
+  src = config.firefox_src()
   if not os.path.isdir(os.path.join(src, '.git')):
     raise proc.CommandError(
-        'no Chromium checkout at %s; run build/sync.py first' % src)
+        'no Firefox checkout at %s; run build/sync.py first' % src)
 
   if args.paths:
     targets = []

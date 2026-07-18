@@ -1,0 +1,33 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+/* Dandelion's About dialog. The layout is inherited from Firefox; this only
+ * supplies the artwork and the surface colour it sits on. */
+
+#aboutDialogContainer {
+  background-color: #141417;
+  color: #f4f4f5;
+}
+
+#leftBox {
+  background-image: url("chrome://branding/content/about-logo.svg");
+  background-repeat: no-repeat;
+  background-size: 96px auto;
+  background-position: center center;
+  width: 200px;
+  margin-inline-end: 20px;
+}
+
+#rightBox {
+  background-image: url("chrome://branding/content/about-wordmark.svg");
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-size: 150px auto;
+  margin-top: 20px;
+  padding-top: 38px;
+}
+
+#bottomBox {
+  padding: 15px 10px 15px;
+}

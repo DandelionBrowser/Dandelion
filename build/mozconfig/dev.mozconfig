@@ -1,0 +1,24 @@
+# Full local build of Dandelion, optimised, without debug assertions.
+#
+# This is the configuration Milestone 1 needs: branding is compiled into the
+# binary and packaged, so an artifact build cannot express it. Expect the first
+# build to take roughly half an hour to an hour, and incremental builds minutes.
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-dandelion-dev
+
+ac_add_options --enable-application=browser
+
+# Dandelion's product identity. The path is the mount created by build/sync.py,
+# and must match BRANDING_MOUNT in build/lib/config.py.
+ac_add_options --with-branding=browser/branding/dandelion
+
+ac_add_options --disable-debug
+ac_add_options --enable-optimize
+
+# The Firefox test suites roughly double build time and are not what Dandelion
+# regresses on; its own tests live in build/tests.
+ac_add_options --disable-tests
+
+# Unsigned extensions must load, otherwise development builds cannot exercise
+# the extension surface at all.
+export MOZ_REQUIRE_SIGNING=0
