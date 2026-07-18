@@ -12,9 +12,13 @@ Dandelion builds from Firefox source with `mach`.
 
 ### Windows
 
-1. **[MozillaBuild](https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuild-Latest.exe)**.
+1. **[MozillaBuild](https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuildSetup-Latest.exe)**.
    Firefox cannot build on Windows without it; it supplies the Unix tools the
    build system shells out to. Install to the default `C:\mozilla-build`.
+
+   The installer is `MozillaBuildSetup-Latest.exe` (~176 MB), in
+   [pub/mozilla/libraries/win32/](https://ftp.mozilla.org/pub/mozilla/libraries/win32/)
+   alongside the numbered releases.
 2. **Visual Studio 2022 or later** with the *Desktop development with C++*
    workload and the Windows SDK. Build Tools editions are sufficient.
 3. **Rust and clang**, installed for you by `mach bootstrap` — see below.
