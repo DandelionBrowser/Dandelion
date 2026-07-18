@@ -1,0 +1,14 @@
+# Line endings are pinned to LF in the repository so that the tree is identical
+# on every platform. Chromium development requires core.autocrlf=false, which
+# means git stops normalising on checkout — without this file, a CRLF working
+# copy silently shows every line of a file as modified.
+* text=auto eol=lf
+
+# Patches are applied by `git apply`, which requires byte-exact context. Any
+# line-ending conversion corrupts them, so they are never transformed.
+*.patch -text
+
+# Binary assets.
+*.png binary
+*.ico binary
+*.icns binary
