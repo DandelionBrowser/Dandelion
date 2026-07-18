@@ -79,6 +79,35 @@ checkout defaults to `C:\src\chromium`; override it with
 The path is deliberately short. Several tools in the Chromium build still break
 on long paths even with `LongPathsEnabled` set.
 
+The first checkout downloads roughly 100 GB and takes hours. It is safe to
+re-run: an interrupted sync resumes, and a partial checkout is repaired rather
+than restarted. Capture the output, because a failure hours in is otherwise
+invisible:
+
+```sh
+python build\sync.py --no-hooks 2>&1 | Tee-Object sync.log
+```
+
+`--no-hooks` skips the toolchain setup step, so the download can run before
+Visual Studio's ATL/MFC components and the Debugging Tools are installed. Run
+`gclient runhooks` in the checkout afterwards to complete it.
+
+Chromium is fetched at tip-of-tree and then moved to the pinned release tag, so
+dependencies are synced twice. This is the flow Chromium's own release-branch
+instructions prescribe; the second pass is mostly local checkouts.
+
+Note that the environment variables above are only picked up by shells started
+after they were set. Open a new terminal before running the checkout.
+
+## Tests
+
+The build tooling has its own tests, which run against synthetic git
+repositories and need neither depot_tools nor a Chromium checkout:
+
+```sh
+python build/run_tests.py
+```
+
 ## Build
 
 ```sh

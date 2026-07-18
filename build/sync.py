@@ -108,7 +108,7 @@ def _mount_overlay(src):
   A junction is used on Windows because, unlike a symlink, it needs neither
   administrator rights nor Developer Mode.
   """
-  link = config.overlay_path()
+  link = os.path.join(src, config.OVERLAY_DIR_NAME)
   if os.path.exists(link):
     resolved = os.path.realpath(link)
     if resolved == os.path.realpath(config.DANDELION_ROOT):
@@ -145,6 +145,10 @@ def main():
   _write_gclient(root, version)
   _checkout_version(src, version)
 
+  # --delete_unversioned_trees removes dependencies that have dropped out of
+  # DEPS, which keeps the tree from accumulating dead third_party directories
+  # across rolls. It only considers paths gclient itself recorded in
+  # .gclient_entries, so it cannot touch the src/dandelion overlay.
   sync_command = ['gclient', 'sync', '--with_branch_heads', '--with_tags',
                   '--delete_unversioned_trees']
   if args.no_hooks:
