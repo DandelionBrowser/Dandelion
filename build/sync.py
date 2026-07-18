@@ -36,7 +36,9 @@ def _clone(src, depth):
   if parent:
     os.makedirs(parent, exist_ok=True)
 
-  command = ['git', 'clone']
+  # git only draws progress when stderr is a terminal, so a clone whose output
+  # is piped to a log looks stalled for the entire run. --progress forces it.
+  command = ['git', 'clone', '--progress']
   if depth:
     # A shallow clone is enough to build and to diff patches against HEAD, but
     # rolling to another release later needs a matching --depth fetch.
