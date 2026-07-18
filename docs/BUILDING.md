@@ -45,20 +45,33 @@ Firefox roll.
 
 ### Watching a clone in progress
 
-The size of `.git` is a poor progress signal: git buffers the incoming pack in
-memory and only flushes it periodically, so the directory can sit near zero for
-minutes while the download runs at full speed. Measure received bytes instead:
+The size of `.git` is a useless progress signal until the clone finishes.
+Windows does not refresh a file's directory entry while a process holds it
+open, so the incoming pack reports 0 bytes for the entire download even as
+gigabytes land on disk. Use the process counters and free disk space instead:
 
 ```powershell
 Get-CimInstance Win32_Process -Filter "Name='git.exe'" |
   Sort-Object WorkingSetSize -Descending | Select-Object -First 1 |
-  ForEach-Object { "{0:N2} GB received" -f ($_.ReadTransferCount/1GB) }
+  ForEach-Object {
+    "read {0:N2} GB / written {1:N2} GB" -f `
+      ($_.ReadTransferCount/1GB), ($_.WriteTransferCount/1GB)
+  }
+"free {0:N0} GB" -f ((Get-PSDrive C).Free/1GB)
 ```
 
-Two phases follow the download and both look idle on the network: resolving
-deltas, which is CPU-bound, and updating files, which writes roughly half a
-million files. On Windows the checkout is often slower than the download, and
-real-time virus scanning makes it slower still.
+The three phases are distinguishable by their signatures:
+
+| Phase | Read | Write | Tell |
+| --- | --- | --- | --- |
+| Downloading | high | high | free disk falling steadily |
+| Resolving deltas | high | **zero** | multi-GB RAM, ~1 core busy |
+| Updating files | low | high | entries appearing in the worktree |
+
+Expect roughly 5 GB of pack for a full clone. On Windows the checkout is often
+slower than the download, and real-time virus scanning makes it slower still —
+excluding the checkout directory from Defender is worth doing before the
+checkout phase begins, and helps every build afterwards.
 
 ## Build
 
