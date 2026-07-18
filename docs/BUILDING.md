@@ -43,6 +43,23 @@ Drop `--bootstrap` if the toolchain is already installed. Add `--depth 1` for a
 shallow clone, at the cost of needing `git fetch --unshallow` before your first
 Firefox roll.
 
+### Watching a clone in progress
+
+The size of `.git` is a poor progress signal: git buffers the incoming pack in
+memory and only flushes it periodically, so the directory can sit near zero for
+minutes while the download runs at full speed. Measure received bytes instead:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='git.exe'" |
+  Sort-Object WorkingSetSize -Descending | Select-Object -First 1 |
+  ForEach-Object { "{0:N2} GB received" -f ($_.ReadTransferCount/1GB) }
+```
+
+Two phases follow the download and both look idle on the network: resolving
+deltas, which is CPU-bound, and updating files, which writes roughly half a
+million files. On Windows the checkout is often slower than the download, and
+real-time virus scanning makes it slower still.
+
 ## Build
 
 ```sh
