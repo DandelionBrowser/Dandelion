@@ -36,3 +36,18 @@ Prerequisites, toolchain setup and platform notes are in
 - [Architecture](docs/ARCHITECTURE.md) — the overlay model and where code belongs
 - [Building](docs/BUILDING.md) — toolchain, checkout and build configurations
 - [Patches](docs/PATCHES.md) — how upstream changes are managed
+
+## Licence
+
+Dandelion's own source — everything in this repository — is licensed under the
+[Mozilla Public License 2.0](LICENSE).
+
+Chromium is not part of this repository. It is fetched separately and remains
+under its own BSD-3-Clause licence, alongside the many third-party licences in
+its tree.
+
+MPL-2.0 is file-level copyleft: modifications to Dandelion's files stay open,
+while the browser can still be distributed with the proprietary components a
+production browser depends on — most importantly the Widevine CDM, without
+which Netflix, Spotify and other DRM-protected services will not play. This is
+the same choice Brave made, and for the same reason.
