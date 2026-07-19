@@ -30,3 +30,42 @@ pref("app.update.badgeWaitTime", 0);
 // Pasting into the web console is blocked until it has been used this many
 // times, as a self-XSS guard.
 pref("devtools.selfxss.count", 5);
+
+// ---------------------------------------------------------------------------
+// Dandelion defaults
+//
+// These are defaults, not locks: everything here remains changeable in
+// Settings or about:config. They exist so that a fresh profile behaves the way
+// Dandelion is meant to, rather than the way Firefox is.
+// ---------------------------------------------------------------------------
+
+// Vertical tabs in the sidebar are Dandelion's default shape, rather than a
+// horizontal strip. The sidebar revamp is what implements them, so it has to
+// be on for the vertical layout to exist at all.
+pref("sidebar.revamp", true);
+pref("sidebar.verticalTabs", true);
+pref("sidebar.visibility", "always-show");
+
+// Enhanced Tracking Protection at its strictest setting. This is the single
+// biggest privacy difference between a default Firefox and Dandelion, and it
+// is the reason to prefer a Gecko base in the first place.
+pref("browser.contentblocking.category", "strict");
+
+// Global Privacy Control asserts an opt-out of sale and sharing, and unlike
+// Do Not Track it carries legal weight in several jurisdictions.
+pref("privacy.globalprivacycontrol.enabled", true);
+
+// Dandelion collects nothing. There is no telemetry endpoint to receive it,
+// so leaving these on would only send data to Mozilla.
+pref("datareporting.healthreport.uploadEnabled", false);
+pref("datareporting.policy.dataSubmissionEnabled", false);
+pref("toolkit.telemetry.unified", false);
+pref("toolkit.telemetry.archive.enabled", false);
+pref("app.shield.optoutstudies.enabled", false);
+pref("browser.discovery.enabled", false);
+
+// Sponsored placements on the new tab page are advertising. A browser that
+// ships strict tracking protection should not be selling the new tab.
+pref("browser.newtabpage.activity-stream.showSponsored", false);
+pref("browser.newtabpage.activity-stream.showSponsoredTopSites", false);
+pref("browser.newtabpage.activity-stream.feeds.section.topstories", false);
