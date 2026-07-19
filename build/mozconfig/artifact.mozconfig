@@ -1,0 +1,24 @@
+# Frontend-only build: downloads prebuilt C++ instead of compiling it.
+#
+# This is the configuration that makes a Gecko fork pleasant to work on. Builds
+# take one to two minutes rather than tens of minutes, which is what the
+# browser UI work in browser/ needs.
+#
+# It cannot be used for anything that changes compiled code, which includes
+# branding compiled into the binary. Build a `dev` configuration for that, and
+# use this one for iterating on chrome JS, CSS and markup.
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-dandelion-artifact
+
+ac_add_options --enable-application=browser
+ac_add_options --enable-artifact-builds
+
+# Kept identical to dev.mozconfig so the two configurations agree on identity.
+ac_add_options --with-branding=browser/branding/dandelion
+ac_add_options --with-app-basename=Dandelion
+
+ac_add_options --disable-debug
+ac_add_options --disable-tests
+
+# Takes no value; an empty assignment disables it. See dev.mozconfig.
+MOZ_REQUIRE_SIGNING=

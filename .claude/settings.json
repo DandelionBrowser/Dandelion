@@ -23,7 +23,15 @@
       "Bash(node -p \"require\\('./package.json'\\).version\")",
       "Bash(grep -n \"^#\\\\{2,3\\\\} \\\\|^- \\\\[ \\\\]\" Work/BUGS.md)",
       "Bash(git checkout *)",
-      "Bash(python -c \"import json,sys; print\\(json.dumps\\(json.load\\(sys.stdin\\).get\\('scripts',{}\\),indent=0\\)\\)\")"
+      "Bash(python -c \"import json,sys; print\\(json.dumps\\(json.load\\(sys.stdin\\).get\\('scripts',{}\\),indent=0\\)\\)\")",
+      "Bash(echo \"exit=$?\")",
+      "Bash(grep -oE 'FIREFOX_[0-9_]+_RELEASE$')",
+      "Bash(curl -sL \"https://product-details.mozilla.org/1.0/firefox_versions.json\")",
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(k,'=',v\\) for k,v in d.items\\(\\) if 'LATEST' in k or 'ESR' in k]\")",
+      "Read(//c/src/firefox/browser/**)",
+      "Bash(python -c \"import uuid; print\\('{%s}' % uuid.uuid4\\(\\)\\)\")",
+      "Bash(cd /c/src/firefox && sed -n 355,390p browser/components/customizableui/CustomizableUI.sys.mjs)",
+      "Read(//c/src/firefox/**)"
     ]
   }
 }

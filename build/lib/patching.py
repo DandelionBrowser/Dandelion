@@ -3,17 +3,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-"""Generation and application of Dandelion's patches against upstream Chromium.
+"""Generation and application of Dandelion's patches against upstream Firefox.
 
-Every patch here is merge debt: it must be re-validated on each Chromium roll.
-The overlay exists so that the patch set stays small — new code belongs under
-//dandelion, and upstream files should be touched only enough to call into it.
+Every patch here is merge debt: it must be re-validated on each Firefox roll.
+The overlay exists so that the patch set stays small — branding lives in
+branding/ and is mounted into the tree, and upstream files should be touched
+only enough to call into Dandelion's own code.
 
 Patches are stored one-per-upstream-file, named after the file's path with
-separators flattened to '-', so `chrome/browser/ui/views/frame/browser_view.cc`
-becomes `chrome-browser-ui-views-frame-browser_view.cc.patch`. That flattening
-is lossy, so the target path is always recovered by parsing the diff header
-rather than by trying to reverse the file name.
+separators flattened to '-', so `browser/base/content/browser.js` becomes
+`browser-base-content-browser.js.patch`. That flattening is lossy, so the
+target path is always recovered by parsing the diff header rather than by
+trying to reverse the file name.
 """
 
 import os
@@ -27,7 +28,7 @@ PATCH_SUFFIX = '.patch'
 
 # Matches the "+++ b/path/to/file" line of a unified diff. Git quotes and
 # escapes paths containing unusual characters, which this deliberately does not
-# accept: such a path in the Chromium tree indicates a malformed patch.
+# accept: such a path in the Firefox tree indicates a malformed patch.
 _DIFF_TARGET_RE = re.compile(r'^\+\+\+ b/(.+)$', re.MULTILINE)
 
 
@@ -62,20 +63,20 @@ def target_of(patch_file):
 
 
 def modified_files(src):
-  """Returns tracked upstream files modified in the Chromium checkout.
+  """Returns tracked upstream files modified in the Firefox checkout.
 
   The comparison is against HEAD rather than the index because `git apply
   --3way` stages what it applies. A plain `git diff` would therefore report a
   freshly patched tree as unmodified, causing this to capture nothing and
   stale-detection to condemn every valid patch.
 
-  The overlay directory is excluded: it is this repository, tracked by its own
-  git, and must never be captured as a patch against Chromium.
+  The mounted branding directory is excluded: it is this repository, tracked
+  by its own git, and must never be captured as a patch against Firefox.
   """
   output = proc.git_output(['diff', 'HEAD', '--name-only', '--diff-filter=M'],
                            cwd=src)
   paths = [line.strip() for line in output.splitlines() if line.strip()]
-  prefix = config.OVERLAY_DIR_NAME + '/'
+  prefix = config.BRANDING_MOUNT + '/'
   return sorted(p for p in paths if not p.startswith(prefix))
 
 
@@ -86,7 +87,7 @@ def write_patch(src, relative_path):
   `git apply --3way` are included; see modified_files().
 
   The `index` line is preserved so that `git apply --3way` can fall back to a
-  three-way merge when a Chromium roll shifts the surrounding context.
+  three-way merge when a Firefox roll shifts the surrounding context.
   """
   diff = proc.git_output(
       ['diff', 'HEAD', '--no-color', '--no-ext-diff', '--src-prefix=a/',
@@ -113,7 +114,7 @@ def is_applied(src, patch_file):
 
 
 def apply_patch(src, patch_file):
-  """Applies one patch to the Chromium checkout.
+  """Applies one patch to the Firefox checkout.
 
   Returns 'applied', 'skipped' if it was already present, or raises
   CommandError with git's own diagnostics when it genuinely conflicts.
@@ -145,12 +146,12 @@ def reset_target(src, relative_path):
 
 
 def validate_target(src, relative_path):
-  """Raises if an upstream path is not a tracked file in the Chromium tree."""
+  """Raises if an upstream path is not a tracked file in the Firefox tree."""
   if posixpath.isabs(relative_path) or '..' in relative_path.split('/'):
     raise ValueError('%r must be a path relative to src/' % relative_path)
   listed = proc.run(['git', 'ls-files', '--error-unmatch', '--', relative_path],
                     cwd=src, check=False, capture=True)
   if listed.returncode != 0:
-    raise ValueError('%r is not a tracked file in the Chromium checkout. New '
-                     'code belongs under //dandelion, not upstream.'
+    raise ValueError('%r is not a tracked file in the Firefox checkout. New '
+                     'code belongs in branding/, not upstream.'
                      % relative_path)

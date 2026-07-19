@@ -6,9 +6,8 @@
 
 """Tests for //dandelion/build/sync.py.
 
-These cover the two steps that would otherwise only fail after a multi-hour
-checkout: generating a .gclient that gclient can actually parse, and mounting
-the overlay into the Chromium tree.
+These cover the steps that would otherwise only fail after a multi-gigabyte
+clone: resolving the Firefox release tag, and mounting branding into the tree.
 
   python build/tests/sync_test.py
 """
@@ -38,96 +37,107 @@ def _load_sync():
 sync = _load_sync()
 
 
-class WriteGclientTest(unittest.TestCase):
+class FirefoxTagTest(unittest.TestCase):
 
-  def setUp(self):
-    temp = tempfile.TemporaryDirectory()
-    self.addCleanup(temp.cleanup)
-    self.root = temp.name
+  def test_tag_matches_mozilla_release_convention(self):
+    # Mozilla tags releases as FIREFOX_<version, dots to underscores>_RELEASE.
+    # Getting this wrong fails only after the clone has finished.
+    self.assertEqual(config.firefox_tag('152.0.6'), 'FIREFOX_152_0_6_RELEASE')
 
-  def _generate(self, version='150.0.7871.129'):
-    sync._write_gclient(self.root, version)
-    with open(os.path.join(self.root, '.gclient'), encoding='utf-8') as f:
-      return f.read()
+  def test_tag_handles_a_dotless_major_release(self):
+    self.assertEqual(config.firefox_tag('153.0'), 'FIREFOX_153_0_RELEASE')
 
-  def test_gclient_file_is_valid_python(self):
-    # gclient evaluates .gclient as Python; a syntax error here would only
-    # surface after the checkout had already started.
-    namespace = {}
-    exec(self._generate(), namespace)  # pylint: disable=exec-used
-
-    self.assertIn('solutions', namespace)
-    self.assertIn('target_os', namespace)
-    self.assertEqual(len(namespace['solutions']), 1)
-
-  def test_solution_pins_the_requested_version(self):
-    namespace = {}
-    exec(self._generate('123.0.1.2'), namespace)  # pylint: disable=exec-used
-
-    solution = namespace['solutions'][0]
-    self.assertEqual(solution['name'], 'src')
-    self.assertTrue(solution['url'].endswith('@123.0.1.2'), solution['url'])
-    self.assertFalse(solution['managed'],
-                     'the tag is checked out by sync.py, not by gclient')
-
-  def test_pgo_profiles_are_requested(self):
-    # build/args/release.gn sets is_official_build, which cannot build without
-    # profile data in the checkout.
-    namespace = {}
-    exec(self._generate(), namespace)  # pylint: disable=exec-used
-
-    self.assertTrue(
-        namespace['solutions'][0]['custom_vars']['checkout_pgo_profiles'])
-
-  def test_target_os_matches_the_host(self):
-    expected = {'win32': ['win'], 'darwin': ['mac']}.get(sys.platform,
-                                                         ['linux'])
-    self.assertEqual(sync._target_os(), expected)
+  def test_pinned_version_resolves_to_a_tag(self):
+    self.assertTrue(config.firefox_tag().startswith('FIREFOX_'))
+    self.assertTrue(config.firefox_tag().endswith('_RELEASE'))
 
 
-class MountOverlayTest(unittest.TestCase):
+class BrandingTest(unittest.TestCase):
+
+  def test_mount_path_agrees_with_the_mozconfigs(self):
+    # build/mozconfig/dev.mozconfig passes --with-branding, and the two must
+    # name the same directory or the build silently uses Firefox branding.
+    with open(os.path.join(config.MOZCONFIG_DIR, 'dev.mozconfig'),
+              encoding='utf-8') as f:
+      self.assertIn('--with-branding=%s' % config.BRANDING_MOUNT, f.read())
+
+  def test_branding_declares_the_dandelion_product_name(self):
+    branding = config.read_branding()
+    self.assertEqual(branding['MOZ_APP_DISPLAYNAME'], 'Dandelion')
+
+
+class MountTest(unittest.TestCase):
 
   def setUp(self):
     temp = tempfile.TemporaryDirectory()
     self.addCleanup(temp.cleanup)
 
     self.src = os.path.join(temp.name, 'src')
-    self.overlay = os.path.join(temp.name, 'dandelion')
-    self.elsewhere = os.path.join(temp.name, 'elsewhere')
-    for path in (self.src, self.overlay, self.elsewhere):
-      os.makedirs(path)
-
-    with open(os.path.join(self.overlay, 'marker'), 'w',
+    self.branding = os.path.join(temp.name, 'branding')
+    # The parent of the mount point exists in a real Firefox checkout.
+    os.makedirs(os.path.join(self.src,
+                             os.path.dirname(config.BRANDING_MOUNT)))
+    os.makedirs(self.branding)
+    with open(os.path.join(self.branding, 'configure.sh'), 'w',
               encoding='utf-8') as f:
-      f.write('dandelion')
+      f.write('MOZ_APP_DISPLAYNAME=Dandelion\n')
 
-    original = config.DANDELION_ROOT
-    config.DANDELION_ROOT = self.overlay
-    self.addCleanup(lambda: setattr(config, 'DANDELION_ROOT', original))
+    original = config.BRANDING_DIR
+    config.BRANDING_DIR = self.branding
+    self.addCleanup(lambda: setattr(config, 'BRANDING_DIR', original))
+
+  def _mounted(self):
+    return os.path.join(self.src, *config.BRANDING_MOUNT.split('/'))
 
   def test_mount_creates_a_traversable_link(self):
-    sync._mount_overlay(self.src)
+    sync._mount(self.src, self.branding, config.BRANDING_MOUNT)
 
-    linked = os.path.join(self.src, config.OVERLAY_DIR_NAME)
-    self.assertTrue(os.path.isdir(linked))
-    # The link must be usable as a path, not merely present: the Chromium build
-    # reaches Dandelion's sources through it.
-    self.assertTrue(os.path.isfile(os.path.join(linked, 'marker')))
+    # The link must be usable as a path, not merely present: the Firefox build
+    # reads branding through it.
+    self.assertTrue(os.path.isfile(
+        os.path.join(self._mounted(), 'configure.sh')))
 
   def test_mount_is_idempotent(self):
-    sync._mount_overlay(self.src)
-    sync._mount_overlay(self.src)  # Must not raise.
+    sync._mount(self.src, self.branding, config.BRANDING_MOUNT)
+    sync._mount(self.src, self.branding, config.BRANDING_MOUNT)  # Must not raise.
 
     self.assertTrue(os.path.isfile(
-        os.path.join(self.src, config.OVERLAY_DIR_NAME, 'marker')))
+        os.path.join(self._mounted(), 'configure.sh')))
 
   def test_mount_refuses_to_clobber_a_foreign_directory(self):
-    # A stale link from another checkout must be reported, never overwritten.
-    link = os.path.join(self.src, config.OVERLAY_DIR_NAME)
-    os.makedirs(link)
+    os.makedirs(self._mounted())
 
     with self.assertRaises(proc.CommandError):
-      sync._mount_overlay(self.src)
+      sync._mount(self.src, self.branding, config.BRANDING_MOUNT)
+
+  def test_exclude_is_written_once(self):
+    exclude = os.path.join(self.src, '.git', 'info', 'exclude')
+    os.makedirs(os.path.dirname(exclude))
+    with open(exclude, 'w', encoding='utf-8') as f:
+      f.write('# pre-existing\n')
+
+    sync._protect_mounts(self.src)
+    sync._protect_mounts(self.src)  # Must not duplicate.
+
+    with open(exclude, encoding='utf-8') as f:
+      contents = f.read()
+    entry = '/%s/' % config.BRANDING_MOUNT
+    self.assertEqual(contents.count(entry), 1)
+    self.assertIn('# pre-existing', contents)
+
+  def test_exclude_is_created_when_absent(self):
+    sync._protect_mounts(self.src)
+
+    exclude = os.path.join(self.src, '.git', 'info', 'exclude')
+    with open(exclude, encoding='utf-8') as f:
+      self.assertIn('/%s/' % config.BRANDING_MOUNT, f.read())
+
+  def test_mount_reports_an_incomplete_checkout(self):
+    empty = os.path.join(os.path.dirname(self.src), 'empty-src')
+    os.makedirs(empty)
+
+    with self.assertRaises(proc.CommandError):
+      sync._mount(empty, self.branding, config.BRANDING_MOUNT)
 
 
 if __name__ == '__main__':

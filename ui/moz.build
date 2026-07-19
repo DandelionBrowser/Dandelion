@@ -1,0 +1,22 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+JAR_MANIFESTS += ["jar.mn"]
+
+# Ships to resource:///modules/dandelion/. The subdirectory is not decoration:
+# an unqualified EXTRA_JS_MODULES glob installs to browser/modules/, and
+# firefoxview already claims the "*.sys.mjs" pattern for that destination, so
+# two identical patterns collide in the install manifest. Namespacing makes the
+# pattern unique, and keeps Dandelion's modules out of the shared directory.
+EXTRA_JS_MODULES.dandelion += ["*.sys.mjs"]
+
+# Dandelion's XPCOM registrations, including the profile-after-change entry
+# point that bootstraps everything else.
+XPCOM_MANIFESTS += ["components.conf"]
+
+# Ships to resource:///actors/, which is where registerWindowActor looks.
+FINAL_TARGET_FILES.actors += [
+    "actors/DandelionNewTabChild.sys.mjs",
+    "actors/DandelionNewTabParent.sys.mjs",
+]

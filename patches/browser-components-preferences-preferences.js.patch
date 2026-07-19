@@ -1,0 +1,17 @@
+diff --git a/browser/components/preferences/preferences.js b/browser/components/preferences/preferences.js
+index e95831780d00..43f7ae2ccc54 100644
+--- a/browser/components/preferences/preferences.js
++++ b/browser/components/preferences/preferences.js
+@@ -542,7 +542,11 @@ function init_all() {
+     "identity.fxaccounts.enabled"
+   );
+   let categorySync = document.getElementById("category-sync");
+-  if (redesignEnabled) {
++  // Dandelion: the redesigned settings show this category unconditionally,
++  // which with Firefox Accounts disabled leaves a nav entry leading to a pane
++  // whose only real group has hidden itself. Gate it on the same pref the
++  // pre-redesign path already respects.
++  if (redesignEnabled && accountsEnabled) {
+     categorySync.setAttribute("data-l10n-id", "pane-account-sync-title2");
+     categorySync.iconSrc = "chrome://browser/skin/fxa/avatar-empty.svg";
+     categorySync.hidden = false;

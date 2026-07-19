@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- The page runs unprivileged in the privilegedabout process. Nothing it
+       - needs comes from the network, so everything is locked to chrome:. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src chrome:; object-src 'none'; script-src chrome:; style-src chrome:; img-src chrome:;"
+    />
+    <title>New Tab</title>
+    <link rel="stylesheet" href="chrome://dandelion-page/content/newtab.css" />
+    <script src="chrome://dandelion-page/content/newtab.js"></script>
+  </head>
+  <body>
+    <main class="page">
+      <img
+        class="mark"
+        src="chrome://branding/content/about-logo.svg"
+        alt=""
+      />
+
+      <form class="search" id="search-form">
+        <input
+          class="search-field"
+          id="search-field"
+          type="text"
+          autocomplete="off"
+          placeholder="Search the web"
+        />
+      </form>
+
+      <!-- Populated from Places via the actor. Stays empty in a private
+         - window, where the parent refuses to send anything. -->
+      <section class="top-sites" id="top-sites" hidden="hidden"></section>
+
+      <p class="private-note" id="private-note" hidden="hidden">
+        You are in a private window. Dandelion will not remember this browsing.
+      </p>
+    </main>
+  </body>
+</html>

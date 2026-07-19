@@ -5,10 +5,10 @@
 
 """Filesystem layout and version pinning for the Dandelion overlay.
 
-Dandelion does not fork chromium/src. This repository is checked out *into* a
-Chromium tree as src/dandelion, so every script needs to agree on where that
-tree lives and which Chromium revision it is pinned to. Both answers come from
-here and nowhere else.
+Dandelion does not fork mozilla-firefox/firefox. The Firefox source is checked
+out separately and pinned to the release in //FIREFOX_VERSION; this repository
+supplies branding, which is mounted into the tree, plus a small set of patches
+against upstream files. Every script agrees on those locations here.
 """
 
 import os
@@ -18,70 +18,89 @@ DANDELION_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 PATCHES_DIR = os.path.join(DANDELION_ROOT, 'patches')
-ARGS_DIR = os.path.join(DANDELION_ROOT, 'build', 'args')
-BRANDING_FILE = os.path.join(DANDELION_ROOT, 'app', 'BRANDING')
-CHROMIUM_VERSION_FILE = os.path.join(DANDELION_ROOT, 'CHROMIUM_VERSION')
+BRANDING_DIR = os.path.join(DANDELION_ROOT, 'branding')
+UI_DIR = os.path.join(DANDELION_ROOT, 'ui')
+MOZCONFIG_DIR = os.path.join(DANDELION_ROOT, 'build', 'mozconfig')
+FIREFOX_VERSION_FILE = os.path.join(DANDELION_ROOT, 'FIREFOX_VERSION')
 
-# The name of the junction created inside the Chromium tree that points back at
-# this repository. Upstream never writes here, which is what keeps rolls cheap.
-OVERLAY_DIR_NAME = 'dandelion'
+# Where branding/ is mounted inside the Firefox tree. Referenced by the
+# mozconfigs as --with-branding, so the two must agree.
+BRANDING_MOUNT = 'browser/branding/dandelion'
 
-CHROMIUM_GIT_URL = 'https://chromium.googlesource.com/chromium/src.git'
-
-# Windows has a 260-character path limit that several tools in the Chromium
-# build still hit even when LongPathsEnabled is set, so the checkout defaults to
-# a short root rather than living next to this repository.
-_DEFAULT_CHROMIUM_ROOT_WIN = 'C:\\src\\chromium'
+# Where ui/ is mounted. Registers chrome://dandelion/ and is added to the
+# browser components DIRS by a patch.
+UI_MOUNT = 'browser/components/dandelion'
 
 
-def chromium_root():
-  """Returns the directory that contains the .gclient file and src/."""
-  override = os.environ.get('DANDELION_CHROMIUM_ROOT')
+def mounts():
+  """Returns the (source, mount path) pairs sync.py links into the tree."""
+  return ((BRANDING_DIR, BRANDING_MOUNT), (UI_DIR, UI_MOUNT))
+
+FIREFOX_GIT_URL = 'https://github.com/mozilla-firefox/firefox.git'
+
+# Firefox refuses to build from a path containing spaces, so the checkout
+# defaults to a short, plain root rather than living beside this repository.
+_DEFAULT_FIREFOX_SRC_WIN = 'C:\\src\\firefox'
+
+
+def firefox_src():
+  """Returns the Firefox source directory."""
+  override = os.environ.get('DANDELION_FIREFOX_SRC')
   if override:
     return os.path.abspath(override)
   if os.name == 'nt':
-    return _DEFAULT_CHROMIUM_ROOT_WIN
-  return os.path.expanduser('~/chromium')
+    return _DEFAULT_FIREFOX_SRC_WIN
+  return os.path.expanduser('~/firefox')
 
 
-def chromium_src():
-  """Returns the Chromium source directory (the `src` checkout itself)."""
-  return os.path.join(chromium_root(), 'src')
-
-
-def overlay_path():
-  """Returns where this repository is mounted inside the Chromium tree."""
-  return os.path.join(chromium_src(), OVERLAY_DIR_NAME)
-
-
-def chromium_version():
-  """Returns the pinned Chromium version, e.g. '150.0.7871.129'.
-
-  Chromium tags releases with the bare version string, so this doubles as the
-  git ref to check out.
-  """
-  with open(CHROMIUM_VERSION_FILE, encoding='utf-8') as f:
+def firefox_version():
+  """Returns the pinned Firefox version, e.g. '152.0.6'."""
+  with open(FIREFOX_VERSION_FILE, encoding='utf-8') as f:
     version = f.read().strip()
   if not version:
-    raise ValueError('%s is empty' % CHROMIUM_VERSION_FILE)
+    raise ValueError('%s is empty' % FIREFOX_VERSION_FILE)
   return version
 
 
-def out_dir(config):
-  """Returns the ninja build directory for a named configuration."""
-  return os.path.join(chromium_src(), 'out', config)
+def firefox_tag(version=None):
+  """Returns the git tag for a Firefox version.
+
+  Mozilla tags releases as FIREFOX_<version with dots as underscores>_RELEASE,
+  so 152.0.6 becomes FIREFOX_152_0_6_RELEASE.
+  """
+  return 'FIREFOX_%s_RELEASE' % (version or firefox_version()).replace('.', '_')
+
+
+def branding_mount_path():
+  """Returns where branding/ is mounted inside the Firefox tree."""
+  return os.path.join(firefox_src(), *BRANDING_MOUNT.split('/'))
+
+
+def object_dir(config):
+  """Returns the mach object directory for a named configuration.
+
+  Kept outside the source tree so that switching configurations never forces a
+  rebuild of the other, and so a wiped objdir cannot take sources with it.
+  """
+  return os.path.join(firefox_src(), 'obj-dandelion-%s' % config)
 
 
 def read_branding():
-  """Parses app/BRANDING into a dict, ignoring comments and blank lines."""
+  """Parses branding/configure.sh into a dict of its shell assignments.
+
+  The file is consumed by Firefox's configure as shell, but it is a flat list
+  of NAME=value assignments, so it doubles as the single source of product
+  identity for this tooling.
+  """
   values = {}
-  with open(BRANDING_FILE, encoding='utf-8') as f:
+  path = os.path.join(BRANDING_DIR, 'configure.sh')
+  with open(path, encoding='utf-8') as f:
     for line in f:
       line = line.strip()
       if not line or line.startswith('#'):
         continue
       key, separator, value = line.partition('=')
       if not separator:
-        raise ValueError('Malformed line in %s: %r' % (BRANDING_FILE, line))
-      values[key.strip()] = value.strip()
+        raise ValueError('Malformed line in %s: %r' % (path, line))
+      values[key.strip()] = value.strip().strip('"')
   return values

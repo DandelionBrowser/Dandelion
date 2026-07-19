@@ -1,0 +1,18 @@
+diff --git a/toolkit/content/widgets/moz-support-link/moz-support-link.mjs b/toolkit/content/widgets/moz-support-link/moz-support-link.mjs
+index 170dc9cab28d..21c5c7721496 100644
+--- a/toolkit/content/widgets/moz-support-link/moz-support-link.mjs
++++ b/toolkit/content/widgets/moz-support-link/moz-support-link.mjs
+@@ -101,8 +101,11 @@ export default class MozSupportLink extends HTMLAnchorElement {
+   }
+ 
+   #setHref() {
+-    let supportPage = this.getAttribute("support-page") ?? "";
+-    let base = MozSupportLink.SUPPORT_URL + supportPage;
++    // Dandelion: the support-page attribute is deliberately not appended.
++    // SUPPORT_URL points at Dandelion's wiki, which has no page per upstream
++    // help topic, so appending one would resolve to a 404. See getHelpLinkURL
++    // in browser/base/content/utilityOverlay.js.
++    let base = MozSupportLink.SUPPORT_URL;
+     this.href = this.hasAttribute("utm-content")
+       ? formatUTMParams(this.getAttribute("utm-content"), base)
+       : base;
