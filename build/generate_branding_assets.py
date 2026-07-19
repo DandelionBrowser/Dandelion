@@ -32,6 +32,7 @@ except ImportError:
 
 SOURCE = os.path.join(config.BRANDING_DIR, 'icon.png')
 CONTENT_DIR = os.path.join(config.BRANDING_DIR, 'content')
+STUB_DIR = os.path.join(config.BRANDING_DIR, 'stubinstaller')
 
 # Surface colour behind installer bitmaps, matching branding/icon.png.
 SURFACE = (20, 20, 23)
@@ -76,6 +77,12 @@ CONTENT_PNGS = {
     'about-logo-private.png': (192, PRIVATE_SURFACE),
     'about-logo-private@2x.png': (384, PRIVATE_SURFACE),
 }
+
+
+# Backdrop for the Windows stub installer pages, required by
+# browser/installer/windows/Makefile.in. The size matches Firefox's own asset;
+# the installer scales it to the window, and its text is overlaid on top.
+STUB_BACKGROUND = (1344, 822)
 
 
 def _load_source():
@@ -128,9 +135,25 @@ def _bitmap(source, width, height, align):
   return canvas
 
 
+def _stub_background(source, width, height):
+  """Renders the stub installer backdrop as a flat surface with the mark.
+
+  JPEG carries no alpha, so the logo is composited onto the surface colour
+  rather than left transparent.
+  """
+  canvas = Image.new('RGB', (width, height), SURFACE)
+  logo_size = int(height * 0.42)
+  logo = _scaled(source, logo_size)
+  # Sitting low and right keeps the mark clear of the installer's heading and
+  # progress bar, which are centred in the upper half.
+  canvas.paste(logo, (int(width * 0.62), int(height * 0.46)), logo)
+  return canvas
+
+
 def main():
   source = _load_source()
   os.makedirs(CONTENT_DIR, exist_ok=True)
+  os.makedirs(STUB_DIR, exist_ok=True)
   written = []
 
   for size in PNG_SIZES:
@@ -157,6 +180,11 @@ def main():
     image = (_tile(source, size, background) if background
              else _scaled(source, size))
     written.append(_write(image, os.path.join(CONTENT_DIR, name)))
+
+  stub = _stub_background(source, *STUB_BACKGROUND)
+  stub_path = os.path.join(STUB_DIR, 'bgstub.jpg')
+  stub.save(stub_path, format='JPEG', quality=88, optimize=True)
+  written.append(os.path.relpath(stub_path, config.DANDELION_ROOT))
 
   for name in written:
     proc.info('wrote %s' % name)
