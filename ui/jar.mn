@@ -10,3 +10,6 @@ browser.jar:
 % content dandelion %content/dandelion/ contentaccessible=no
   content/dandelion/tokens.css   (content/tokens.css)
   content/dandelion/chrome.css   (content/chrome.css)
+  content/dandelion/newtab.html  (content/newtab.html)
+  content/dandelion/newtab.css   (content/newtab.css)
+  content/dandelion/newtab.js    (content/newtab.js)

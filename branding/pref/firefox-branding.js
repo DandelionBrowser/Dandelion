@@ -39,6 +39,11 @@ pref("devtools.selfxss.count", 5);
 // Dandelion is meant to, rather than the way Firefox is.
 // ---------------------------------------------------------------------------
 
+// The home button and the startup page read browser.startup.homepage, which is
+// a separate setting from the new tab page: DandelionStartup overrides
+// AboutNewTab.newTabURL, and that deliberately does not affect about:home.
+pref("browser.startup.homepage", "about:dandelion");
+
 // Vertical tabs in the sidebar are Dandelion's default shape, rather than a
 // horizontal strip. The sidebar revamp is what implements them, so it has to
 // be on for the vertical layout to exist at all.

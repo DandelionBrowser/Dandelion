@@ -14,11 +14,14 @@
 const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
+  AboutNewTab: "resource:///modules/AboutNewTab.sys.mjs",
   CustomizableUI: "resource:///modules/CustomizableUI.sys.mjs",
   EveryWindow: "resource:///modules/EveryWindow.sys.mjs",
 });
 
 const EVERY_WINDOW_ID = "dandelion-startup";
+
+const NEW_TAB_URL = "about:dandelion";
 
 /**
  * The toolbar layout Dandelion ships, applied once per profile.
@@ -42,6 +45,15 @@ export class DandelionStartup {
   }
 
   #init() {
+    this.#registerNewTabActor();
+
+    // Setting this is what makes every "open a new tab" path land on
+    // about:dandelion; upstream reads it through BROWSER_NEW_TAB_URL. Note
+    // that it takes private windows too -- upstream only falls back to
+    // about:privatebrowsing while the URL is not overridden -- which is why
+    // about:dandelion has a private mode of its own.
+    lazy.AboutNewTab.newTabURL = NEW_TAB_URL;
+
     // The layout migration needs CustomizableUI's saved state loaded and a
     // window past delayed startup, so it runs from the window callback rather
     // than straight from profile-after-change. The version pref keeps it to
@@ -51,6 +63,29 @@ export class DandelionStartup {
       () => this.#applyLayout(),
       () => {}
     );
+  }
+
+  /**
+   * Registering at runtime keeps the actor out of the shared
+   * DesktopActorRegistry table, so it costs no patch.
+   */
+  #registerNewTabActor() {
+    ChromeUtils.registerWindowActor("DandelionNewTab", {
+      parent: {
+        esModuleURI: "resource:///actors/DandelionNewTabParent.sys.mjs",
+      },
+      child: {
+        esModuleURI: "resource:///actors/DandelionNewTabChild.sys.mjs",
+        events: {
+          // Dispatched by the page, which is untrusted, so these have to be
+          // accepted as untrusted events.
+          DandelionNewTabInit: { wantUntrusted: true },
+          DandelionNewTabSearch: { wantUntrusted: true },
+        },
+      },
+      matches: [`${NEW_TAB_URL}*`],
+      remoteTypes: ["privilegedabout"],
+    });
   }
 
   #applyLayout() {
