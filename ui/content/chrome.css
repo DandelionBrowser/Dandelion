@@ -1,0 +1,178 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+/* Dandelion's browser chrome.
+ *
+ * This restyles Firefox's window rather than replacing it. Where Firefox
+ * exposes a theming variable, Dandelion sets that variable instead of
+ * overriding the rule that reads it -- upstream is free to move its widgets
+ * around, and the restyle follows.
+ *
+ * Loaded from browser.xhtml. See docs/UI.md. */
+
+@import url("chrome://dandelion/content/tokens.css");
+
+/* --------------------------------------------------------------------------
+ * Window surfaces
+ *
+ * Firefox composes the toolbar area from --toolbar-bgcolor and friends. Naming
+ * Dandelion's tokens here restyles the whole top of the window at once.
+ * ------------------------------------------------------------------------ */
+
+:root {
+  --toolbar-bgcolor: var(--dandelion-bg-elevated);
+  --toolbar-color: var(--dandelion-text);
+  --toolbar-field-background-color: var(--dandelion-surface);
+  --toolbar-field-focus-background-color: var(--dandelion-surface-active);
+  --toolbar-field-color: var(--dandelion-text);
+  --toolbar-field-border-color: transparent;
+
+  --tabpanel-background-color: var(--dandelion-bg);
+  --chrome-content-separator-color: var(--dandelion-line);
+
+  /* Firefox's focus ring, so keyboard focus reads as Dandelion rather than
+   * as the platform default. */
+  --focus-outline-color: var(--dandelion-accent);
+
+  --arrowpanel-background: var(--dandelion-bg-elevated);
+  --arrowpanel-color: var(--dandelion-text);
+  --arrowpanel-border-color: var(--dandelion-line);
+  --arrowpanel-border-radius: var(--dandelion-radius-md);
+}
+
+#navigator-toolbox {
+  background-color: var(--dandelion-bg-elevated);
+  border-bottom: 1px solid var(--dandelion-line);
+}
+
+/* --------------------------------------------------------------------------
+ * Address pill
+ *
+ * The reference design treats the address bar as a floating pill rather than a
+ * full-width field, which is the single most recognisable part of the chrome.
+ * ------------------------------------------------------------------------ */
+
+#urlbar {
+  --urlbar-height: 36px;
+  --urlbar-toolbar-height: 44px;
+}
+
+#urlbar-background {
+  background-color: var(--dandelion-surface);
+  border: 1px solid transparent;
+  border-radius: var(--dandelion-radius-xl);
+  transition:
+    background-color var(--dandelion-duration-fast) var(--dandelion-ease-standard),
+    border-color var(--dandelion-duration-fast) var(--dandelion-ease-standard);
+}
+
+#urlbar:hover > #urlbar-background {
+  background-color: var(--dandelion-surface-hover);
+}
+
+#urlbar[focused="true"] > #urlbar-background {
+  background-color: var(--dandelion-surface-active);
+  border-color: var(--dandelion-accent);
+}
+
+/* The results popup is a continuation of the pill, so it shares its radius
+ * rather than reverting to Firefox's squarer panel. */
+.urlbarView {
+  border-radius: var(--dandelion-radius-lg);
+  border: 1px solid var(--dandelion-line);
+  background-color: var(--dandelion-bg-elevated);
+}
+
+.urlbarView-row[selected] > .urlbarView-row-inner,
+.urlbarView-row:hover > .urlbarView-row-inner {
+  background-color: var(--dandelion-surface-hover);
+  border-radius: var(--dandelion-radius-sm);
+}
+
+/* --------------------------------------------------------------------------
+ * Toolbar buttons
+ * ------------------------------------------------------------------------ */
+
+toolbarbutton.toolbarbutton-1 > .toolbarbutton-icon,
+toolbarbutton.toolbarbutton-1 > .toolbarbutton-badge-stack {
+  border-radius: var(--dandelion-radius-sm);
+  transition: background-color var(--dandelion-duration-fast)
+    var(--dandelion-ease-standard);
+}
+
+toolbarbutton.toolbarbutton-1:not([disabled]):hover > .toolbarbutton-icon,
+toolbarbutton.toolbarbutton-1:not([disabled]):hover > .toolbarbutton-badge-stack {
+  background-color: var(--dandelion-surface-hover);
+}
+
+toolbarbutton.toolbarbutton-1:not([disabled])[open] > .toolbarbutton-icon,
+toolbarbutton.toolbarbutton-1:not([disabled]):active > .toolbarbutton-icon {
+  background-color: var(--dandelion-surface-active);
+}
+
+/* --------------------------------------------------------------------------
+ * Sidebar and vertical tabs
+ *
+ * Dandelion ships vertical tabs on by default, so the sidebar is the primary
+ * navigation surface rather than an occasional panel.
+ * ------------------------------------------------------------------------ */
+
+#sidebar-main,
+#sidebar-box {
+  background-color: var(--dandelion-bg);
+  border-inline-end: 1px solid var(--dandelion-line);
+}
+
+#tabbrowser-tabs[orient="vertical"] .tabbrowser-tab {
+  border-radius: var(--dandelion-radius-sm);
+  margin-inline: 6px;
+  transition: background-color var(--dandelion-duration-fast)
+    var(--dandelion-ease-standard);
+}
+
+#tabbrowser-tabs[orient="vertical"] .tabbrowser-tab:hover > .tab-stack > .tab-background {
+  background-color: var(--dandelion-surface-hover);
+  border-radius: var(--dandelion-radius-sm);
+}
+
+#tabbrowser-tabs[orient="vertical"] .tabbrowser-tab[selected] > .tab-stack > .tab-background {
+  background-color: var(--dandelion-surface-active);
+  border-radius: var(--dandelion-radius-sm);
+}
+
+/* The selected tab carries the accent as a leading marker rather than a full
+ * fill, so a long tab list stays quiet. */
+#tabbrowser-tabs[orient="vertical"] .tabbrowser-tab[selected] > .tab-stack > .tab-background::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 6px;
+  width: 3px;
+  border-radius: 999px;
+  background-color: var(--dandelion-accent);
+}
+
+/* --------------------------------------------------------------------------
+ * Content area
+ *
+ * A rounded, inset content area is what makes the window read as a shell
+ * around the page rather than a frame bolted to it.
+ * ------------------------------------------------------------------------ */
+
+#tabbrowser-tabbox {
+  border-radius: var(--dandelion-radius-md);
+  overflow: hidden;
+  margin: 0 8px 8px 0;
+  box-shadow: 0 0 0 1px var(--dandelion-line);
+}
+
+/* --------------------------------------------------------------------------
+ * Findbar
+ * ------------------------------------------------------------------------ */
+
+findbar {
+  background-color: var(--dandelion-bg-elevated);
+  border-top: 1px solid var(--dandelion-line);
+  color: var(--dandelion-text);
+}

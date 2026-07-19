@@ -1,0 +1,13 @@
+diff --git a/browser/base/content/browser.xhtml b/browser/base/content/browser.xhtml
+index d8ed09dca6c8..7e1d0c7c08f3 100644
+--- a/browser/base/content/browser.xhtml
++++ b/browser/base/content/browser.xhtml
+@@ -102,6 +102,8 @@
+ 
+   <script src="chrome://browser/content/global-scripts.js"></script>
+   <script src="chrome://browser/content/browser-main.js"></script>
++  <!-- Dandelion's chrome, loaded last so it wins the cascade. -->
++  <link rel="stylesheet" href="chrome://dandelion/content/chrome.css" />
+ </head>
+ <html:body xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+ # All sets except for popupsets (commands, keys, and stringbundles)

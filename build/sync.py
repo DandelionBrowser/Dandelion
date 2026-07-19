@@ -71,18 +71,18 @@ def _checkout_version(src, version):
              cwd=src, capture=False)
 
 
-def _mount_branding(src):
-  """Links branding/ into the Firefox tree as browser/branding/dandelion.
+def _mount(src, source_dir, mount_rel):
+  """Links one of this repository's directories into the Firefox tree.
 
   A junction is used on Windows because, unlike a symlink, it needs neither
   administrator rights nor Developer Mode. Mounting rather than copying means
   edits here are immediately live in the tree, with no sync step to forget.
   """
-  link = os.path.join(src, *config.BRANDING_MOUNT.split('/'))
+  link = os.path.join(src, *mount_rel.split('/'))
   if os.path.exists(link):
     resolved = os.path.realpath(link)
-    if resolved == os.path.realpath(config.BRANDING_DIR):
-      proc.info('branding already mounted at %s' % link)
+    if resolved == os.path.realpath(source_dir):
+      proc.info('already mounted at %s' % link)
       return
     raise proc.CommandError(
         '%s already exists and points at %s, not this repository. Remove it '
@@ -94,14 +94,14 @@ def _mount_branding(src):
         '%s does not exist; the Firefox checkout looks incomplete' % parent)
 
   if sys.platform == 'win32':
-    proc.run(['cmd', '/c', 'mklink', '/J', link, config.BRANDING_DIR])
+    proc.run(['cmd', '/c', 'mklink', '/J', link, source_dir])
   else:
-    os.symlink(config.BRANDING_DIR, link, target_is_directory=True)
-  proc.info('mounted branding at %s' % link)
+    os.symlink(source_dir, link, target_is_directory=True)
+  proc.info('mounted %s at %s' % (os.path.basename(source_dir), link))
 
 
-def _protect_branding_mount(src):
-  """Hides the branding mount from the Firefox repository's git.
+def _protect_mounts(src):
+  """Hides Dandelion's mounts from the Firefox repository's git.
 
   The junction is an untracked directory as far as Firefox's checkout is
   concerned, so it otherwise clutters `git status` and `git clean -fd` deletes
@@ -113,24 +113,27 @@ def _protect_branding_mount(src):
   branding.
   """
   exclude_file = os.path.join(src, '.git', 'info', 'exclude')
-  entry = '/%s/' % config.BRANDING_MOUNT
-
   existing = ''
   if os.path.exists(exclude_file):
     with open(exclude_file, encoding='utf-8') as f:
       existing = f.read()
-  if entry in existing.splitlines():
+  lines = existing.splitlines()
+
+  missing = ['/%s/' % mount for _, mount in config.mounts()
+             if '/%s/' % mount not in lines]
+  if not missing:
     return
 
   os.makedirs(os.path.dirname(exclude_file), exist_ok=True)
   with open(exclude_file, 'a', encoding='utf-8', newline='\n') as f:
     if existing and not existing.endswith('\n'):
       f.write('\n')
-    f.write('\n# Dandelion branding is mounted here by build/sync.py.\n'
-            '# Excluding it stops `git clean -fdx` from deleting through the\n'
-            '# junction into the Dandelion repository.\n')
-    f.write(entry + '\n')
-  proc.info('excluded %s from the Firefox checkout' % entry)
+    f.write('\n# Dandelion directories are mounted here by build/sync.py.\n'
+            '# Excluding them stops `git clean -fdx` from deleting through\n'
+            '# the junctions into the Dandelion repository.\n')
+    for entry in missing:
+      f.write(entry + '\n')
+  proc.info('excluded %s from the Firefox checkout' % ', '.join(missing))
 
 
 def _bootstrap(src):
@@ -165,8 +168,9 @@ def main():
     _clone(src, args.depth)
 
   _checkout_version(src, version)
-  _mount_branding(src)
-  _protect_branding_mount(src)
+  for source_dir, mount_rel in config.mounts():
+    _mount(src, source_dir, mount_rel)
+  _protect_mounts(src)
 
   if not args.no_patch:
     proc.info('applying Dandelion patches')

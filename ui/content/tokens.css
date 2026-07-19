@@ -1,0 +1,85 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+/* Dandelion's design tokens.
+ *
+ * These values are the design system from the Dandelion reference
+ * implementation, restated for the browser chrome. Nothing else in Dandelion's
+ * interface may hardcode a colour, radius or duration -- if a value is needed
+ * twice, it belongs here.
+ *
+ * Firefox's own chrome is themed through a large set of --toolbar-* and
+ * --urlbar-* variables. Dandelion maps its tokens onto those rather than
+ * overriding individual rules, so the restyle follows upstream when Firefox
+ * moves its widgets around. */
+
+:root {
+  /* Surfaces */
+  --dandelion-bg: #0b0b0d;
+  --dandelion-bg-elevated: #141417;
+  --dandelion-surface: rgba(255, 255, 255, 0.045);
+  --dandelion-surface-hover: rgba(255, 255, 255, 0.07);
+  --dandelion-surface-active: rgba(255, 255, 255, 0.1);
+
+  /* Lines */
+  --dandelion-line: rgba(255, 255, 255, 0.08);
+  --dandelion-line-strong: rgba(255, 255, 255, 0.14);
+
+  /* Text */
+  --dandelion-text: #f4f4f5;
+  --dandelion-muted: #a1a1aa;
+  --dandelion-faint: #6b6b74;
+
+  /* Accent — dandelion yellow */
+  --dandelion-accent: #f5c451;
+  --dandelion-accent-soft: color-mix(in oklab, var(--dandelion-accent) 16%, transparent);
+  --dandelion-accent-fg: #1a1205;
+
+  /* Status */
+  --dandelion-danger: #f87171;
+  --dandelion-success: #4ade80;
+  --dandelion-warning: #fbbf24;
+
+  /* Radii. The scale exists so the whole interface can be squared off or
+   * rounded further from one place. */
+  --dandelion-radius-scale: 1;
+  --dandelion-radius-xs: calc(6px * var(--dandelion-radius-scale));
+  --dandelion-radius-sm: calc(8px * var(--dandelion-radius-scale));
+  --dandelion-radius-md: calc(12px * var(--dandelion-radius-scale));
+  --dandelion-radius-lg: calc(16px * var(--dandelion-radius-scale));
+  --dandelion-radius-xl: calc(22px * var(--dandelion-radius-scale));
+
+  /* Motion */
+  --dandelion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dandelion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dandelion-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --dandelion-duration-fast: 120ms;
+  --dandelion-duration-base: 180ms;
+}
+
+/* Light theme. Firefox sets browser-window colours from the active theme, so
+ * this keys off the same signal the rest of the chrome uses. */
+@media (prefers-color-scheme: light) {
+  :root:not([lwtheme]) {
+    --dandelion-bg: #f6f6f7;
+    --dandelion-bg-elevated: #ffffff;
+    --dandelion-surface: rgba(0, 0, 0, 0.035);
+    --dandelion-surface-hover: rgba(0, 0, 0, 0.06);
+    --dandelion-surface-active: rgba(0, 0, 0, 0.09);
+    --dandelion-line: rgba(0, 0, 0, 0.08);
+    --dandelion-line-strong: rgba(0, 0, 0, 0.14);
+    --dandelion-text: #18181b;
+    --dandelion-muted: #52525b;
+    --dandelion-faint: #6b6b74;
+  }
+}
+
+/* Respect the user's motion preference: every Dandelion transition collapses
+ * rather than being merely shortened. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dandelion-duration-fast: 0ms;
+    --dandelion-duration-base: 0ms;
+  }
+}

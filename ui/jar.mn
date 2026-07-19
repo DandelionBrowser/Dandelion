@@ -1,0 +1,12 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+# Registers chrome://dandelion/, which is how Dandelion's own interface code
+# reaches the browser window. Everything here is additive: no upstream file is
+# rewritten, so a Firefox roll cannot conflict with it.
+
+browser.jar:
+% content dandelion %content/dandelion/ contentaccessible=no
+  content/dandelion/tokens.css   (content/tokens.css)
+  content/dandelion/chrome.css   (content/chrome.css)

@@ -1,0 +1,12 @@
+diff --git a/browser/components/moz.build b/browser/components/moz.build
+index 799e5246e6d1..3af98c8b33f3 100644
+--- a/browser/components/moz.build
++++ b/browser/components/moz.build
+@@ -37,6 +37,7 @@ DIRS += [
+     "contextualidentity",
+     "controlcenter",
+     "customizableui",
++    "dandelion",
+     "customkeys",
+     "downloads",
+     "enterprisepolicies",

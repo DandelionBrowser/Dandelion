@@ -19,12 +19,22 @@ DANDELION_ROOT = os.path.dirname(
 
 PATCHES_DIR = os.path.join(DANDELION_ROOT, 'patches')
 BRANDING_DIR = os.path.join(DANDELION_ROOT, 'branding')
+UI_DIR = os.path.join(DANDELION_ROOT, 'ui')
 MOZCONFIG_DIR = os.path.join(DANDELION_ROOT, 'build', 'mozconfig')
 FIREFOX_VERSION_FILE = os.path.join(DANDELION_ROOT, 'FIREFOX_VERSION')
 
 # Where branding/ is mounted inside the Firefox tree. Referenced by the
 # mozconfigs as --with-branding, so the two must agree.
 BRANDING_MOUNT = 'browser/branding/dandelion'
+
+# Where ui/ is mounted. Registers chrome://dandelion/ and is added to the
+# browser components DIRS by a patch.
+UI_MOUNT = 'browser/components/dandelion'
+
+
+def mounts():
+  """Returns the (source, mount path) pairs sync.py links into the tree."""
+  return ((BRANDING_DIR, BRANDING_MOUNT), (UI_DIR, UI_MOUNT))
 
 FIREFOX_GIT_URL = 'https://github.com/mozilla-firefox/firefox.git'
 
