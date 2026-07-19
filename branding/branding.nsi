@@ -9,14 +9,14 @@
 !define BrandFullNameInternal "Dandelion"
 !define BrandFullName         "Dandelion"
 !define CompanyName           "Dandelion"
-!define URLInfoAbout          "https://github.com/ChristianRelf/Dandelion"
-!define HelpLink              "https://github.com/ChristianRelf/Dandelion/issues"
+!define URLInfoAbout          "https://github.com/DandelionBrowser/Dandelion"
+!define HelpLink              "https://github.com/DandelionBrowser/Dandelion/issues"
 
 # Dandelion has no stub installer and no download server, so the manual
 # download link points at the release listing for every architecture.
-!define URLStubDownloadX86 "https://github.com/ChristianRelf/Dandelion/releases"
-!define URLStubDownloadAMD64 "https://github.com/ChristianRelf/Dandelion/releases"
-!define URLStubDownloadAArch64 "https://github.com/ChristianRelf/Dandelion/releases"
-!define URLManualDownload "https://github.com/ChristianRelf/Dandelion/releases"
+!define URLStubDownloadX86 "https://github.com/DandelionBrowser/Dandelion/releases"
+!define URLStubDownloadAMD64 "https://github.com/DandelionBrowser/Dandelion/releases"
+!define URLStubDownloadAArch64 "https://github.com/DandelionBrowser/Dandelion/releases"
+!define URLManualDownload "https://github.com/DandelionBrowser/Dandelion/releases"
 
 !define Channel "release"

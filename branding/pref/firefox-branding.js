@@ -18,8 +18,8 @@ pref("app.update.promptWaitTime", 86400);
 
 // Where a user can go if every update installation attempt fails, and where
 // the "More information about this update" link points.
-pref("app.update.url.manual", "https://github.com/ChristianRelf/Dandelion");
-pref("app.update.url.details", "https://github.com/ChristianRelf/Dandelion");
+pref("app.update.url.manual", "https://github.com/DandelionBrowser/Dandelion");
+pref("app.update.url.details", "https://github.com/DandelionBrowser/Dandelion");
 
 // How many days a binary may go without an update check.
 pref("app.update.checkInstallTime.days", 2);
@@ -118,21 +118,21 @@ pref("browser.contentblocking.report.hide_vpn_banner", true);
 // itself rather than on a 404 -- see the utilityOverlay.js and
 // moz-support-link.mjs patches. Once the wiki has a page per topic, restore
 // the concatenation there and remove both patches.
-pref("app.support.baseURL", "https://github.com/ChristianRelf/Dandelion/wiki/");
+pref("app.support.baseURL", "https://github.com/DandelionBrowser/Dandelion/wiki/");
 
 // Feedback belongs on the issue tracker rather than the wiki, which is the
 // one place a report can actually be acted on.
-pref("app.feedback.baseURL", "https://github.com/ChristianRelf/Dandelion/issues");
+pref("app.feedback.baseURL", "https://github.com/DandelionBrowser/Dandelion/issues");
 
 // "Learn more" on the permission prompts.
-pref("browser.geolocation.warning.infoURL", "https://github.com/ChristianRelf/Dandelion/wiki/Location");
-pref("browser.xr.warning.infoURL", "https://github.com/ChristianRelf/Dandelion/wiki/Virtual-reality");
-pref("browser.lna.warning.infoURL", "https://github.com/ChristianRelf/Dandelion/wiki/Local-network");
+pref("browser.geolocation.warning.infoURL", "https://github.com/DandelionBrowser/Dandelion/wiki/Location");
+pref("browser.xr.warning.infoURL", "https://github.com/DandelionBrowser/Dandelion/wiki/Virtual-reality");
+pref("browser.lna.warning.infoURL", "https://github.com/DandelionBrowser/Dandelion/wiki/Local-network");
 
 // The about:protections cards.
-pref("browser.contentblocking.report.lockwise.how_it_works.url", "https://github.com/ChristianRelf/Dandelion/wiki/Passwords");
-pref("browser.contentblocking.report.social.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
-pref("browser.contentblocking.report.cookie.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
-pref("browser.contentblocking.report.tracker.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
-pref("browser.contentblocking.report.fingerprinter.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
-pref("browser.contentblocking.report.cryptominer.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.lockwise.how_it_works.url", "https://github.com/DandelionBrowser/Dandelion/wiki/Passwords");
+pref("browser.contentblocking.report.social.url", "https://github.com/DandelionBrowser/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.cookie.url", "https://github.com/DandelionBrowser/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.tracker.url", "https://github.com/DandelionBrowser/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.fingerprinter.url", "https://github.com/DandelionBrowser/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.cryptominer.url", "https://github.com/DandelionBrowser/Dandelion/wiki/Tracking-protection");
