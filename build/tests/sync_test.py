@@ -66,7 +66,7 @@ class BrandingTest(unittest.TestCase):
     self.assertEqual(branding['MOZ_APP_DISPLAYNAME'], 'Dandelion')
 
 
-class MountBrandingTest(unittest.TestCase):
+class MountTest(unittest.TestCase):
 
   def setUp(self):
     temp = tempfile.TemporaryDirectory()
@@ -90,7 +90,7 @@ class MountBrandingTest(unittest.TestCase):
     return os.path.join(self.src, *config.BRANDING_MOUNT.split('/'))
 
   def test_mount_creates_a_traversable_link(self):
-    sync._mount_branding(self.src)
+    sync._mount(self.src, self.branding, config.BRANDING_MOUNT)
 
     # The link must be usable as a path, not merely present: the Firefox build
     # reads branding through it.
@@ -98,8 +98,8 @@ class MountBrandingTest(unittest.TestCase):
         os.path.join(self._mounted(), 'configure.sh')))
 
   def test_mount_is_idempotent(self):
-    sync._mount_branding(self.src)
-    sync._mount_branding(self.src)  # Must not raise.
+    sync._mount(self.src, self.branding, config.BRANDING_MOUNT)
+    sync._mount(self.src, self.branding, config.BRANDING_MOUNT)  # Must not raise.
 
     self.assertTrue(os.path.isfile(
         os.path.join(self._mounted(), 'configure.sh')))
@@ -108,7 +108,7 @@ class MountBrandingTest(unittest.TestCase):
     os.makedirs(self._mounted())
 
     with self.assertRaises(proc.CommandError):
-      sync._mount_branding(self.src)
+      sync._mount(self.src, self.branding, config.BRANDING_MOUNT)
 
   def test_exclude_is_written_once(self):
     exclude = os.path.join(self.src, '.git', 'info', 'exclude')
@@ -116,8 +116,8 @@ class MountBrandingTest(unittest.TestCase):
     with open(exclude, 'w', encoding='utf-8') as f:
       f.write('# pre-existing\n')
 
-    sync._protect_branding_mount(self.src)
-    sync._protect_branding_mount(self.src)  # Must not duplicate.
+    sync._protect_mounts(self.src)
+    sync._protect_mounts(self.src)  # Must not duplicate.
 
     with open(exclude, encoding='utf-8') as f:
       contents = f.read()
@@ -126,7 +126,7 @@ class MountBrandingTest(unittest.TestCase):
     self.assertIn('# pre-existing', contents)
 
   def test_exclude_is_created_when_absent(self):
-    sync._protect_branding_mount(self.src)
+    sync._protect_mounts(self.src)
 
     exclude = os.path.join(self.src, '.git', 'info', 'exclude')
     with open(exclude, encoding='utf-8') as f:
@@ -137,7 +137,7 @@ class MountBrandingTest(unittest.TestCase):
     os.makedirs(empty)
 
     with self.assertRaises(proc.CommandError):
-      sync._mount_branding(empty)
+      sync._mount(empty, self.branding, config.BRANDING_MOUNT)
 
 
 if __name__ == '__main__':
