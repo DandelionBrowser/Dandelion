@@ -3,3 +3,11 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 JAR_MANIFESTS += ["jar.mn"]
+
+# Ships to resource:///modules/. Globbed so that adding a module never means
+# editing this file.
+EXTRA_JS_MODULES += ["*.sys.mjs"]
+
+# Dandelion's XPCOM registrations, including the profile-after-change entry
+# point that bootstraps everything else.
+XPCOM_MANIFESTS += ["components.conf"]
