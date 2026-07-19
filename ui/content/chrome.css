@@ -47,15 +47,40 @@
 }
 
 /* --------------------------------------------------------------------------
- * Address pill
+ * Address bar
  *
- * The reference design treats the address bar as a floating pill rather than a
- * full-width field, which is the single most recognisable part of the chrome.
+ * Back, forward and reload sit at the left of the bar and the address field
+ * begins immediately after them, filling the rest -- the arrangement people
+ * already know from other browsers. Dandelion's identity comes from the
+ * content card below and the sidebar, not from moving the address bar
+ * somewhere unfamiliar.
+ *
+ * The urlbar stays inside #nav-bar throughout. It is removable="false" and
+ * moz-urlbar anchors its results popup against nav-bar geometry, so relocating
+ * it would cost a patch and a pile of JS for no gain here.
  * ------------------------------------------------------------------------ */
 
 #urlbar {
   --urlbar-height: 36px;
   --urlbar-toolbar-height: 44px;
+}
+
+/* Upstream puts a flexible spring between the reload button and the address
+ * bar, which is what would centre the field. Collapsing it lets the field
+ * start immediately after reload. The spring after the address bar is left
+ * alone, so the buttons on the right stay right.
+ *
+ * Springs are draggable in customize mode, so this only applies outside it. */
+:root:not([customizing])
+  #nav-bar-customization-target
+  > toolbarspring:has(~ #urlbar-container) {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 0;
+}
+
+#urlbar-container {
+  flex: 1 1 auto;
 }
 
 #urlbar-background {
@@ -156,15 +181,32 @@ toolbarbutton.toolbarbutton-1:not([disabled]):active > .toolbarbutton-icon {
 /* --------------------------------------------------------------------------
  * Content area
  *
- * A rounded, inset content area is what makes the window read as a shell
- * around the page rather than a frame bolted to it.
+ * With a conventional toolbar above, this is the element carrying the shape of
+ * the product: the page sits on the window as a card rather than filling a
+ * frame bolted to the chrome. Inset on all four sides so the shell is visible
+ * around it, which is what stops it reading as a plain content pane.
  * ------------------------------------------------------------------------ */
 
+/* The surface the card floats on. */
+#browser {
+  background-color: var(--dandelion-bg);
+}
+
 #tabbrowser-tabbox {
-  border-radius: var(--dandelion-radius-md);
+  border-radius: var(--dandelion-radius-lg);
   overflow: hidden;
-  margin: 0 8px 8px 0;
-  box-shadow: 0 0 0 1px var(--dandelion-line);
+  margin: 8px;
+  box-shadow:
+    0 0 0 1px var(--dandelion-line),
+    0 6px 20px rgb(0 0 0 / 0.25);
+}
+
+/* The shadow is what separates the card from the surface, so in forced-colours
+ * mode -- where it is dropped -- the outline has to carry that on its own. */
+@media (forced-colors: active) {
+  #tabbrowser-tabbox {
+    outline: 1px solid CanvasText;
+  }
 }
 
 /* --------------------------------------------------------------------------
