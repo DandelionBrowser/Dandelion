@@ -20,5 +20,7 @@ ac_add_options --enable-optimize
 ac_add_options --disable-tests
 
 # Unsigned extensions must load, otherwise development builds cannot exercise
-# the extension surface at all.
-export MOZ_REQUIRE_SIGNING=0
+# the extension surface at all. Signing defaults to on for a release milestone,
+# and the option takes no value: an empty assignment is how the in-tree
+# mozconfigs (browser/config/mozconfigs/*/add-on-devel) disable it.
+MOZ_REQUIRE_SIGNING=

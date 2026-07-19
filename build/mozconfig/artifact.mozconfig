@@ -16,4 +16,5 @@ ac_add_options --enable-artifact-builds
 ac_add_options --disable-debug
 ac_add_options --disable-tests
 
-export MOZ_REQUIRE_SIGNING=0
+# Takes no value; an empty assignment disables it. See dev.mozconfig.
+MOZ_REQUIRE_SIGNING=
