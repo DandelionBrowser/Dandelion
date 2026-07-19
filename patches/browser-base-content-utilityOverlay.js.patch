@@ -1,0 +1,18 @@
+diff --git a/browser/base/content/utilityOverlay.js b/browser/base/content/utilityOverlay.js
+index e692f340a0fb..1fcf48abd6d2 100644
+--- a/browser/base/content/utilityOverlay.js
++++ b/browser/base/content/utilityOverlay.js
+@@ -534,7 +534,12 @@ function makeURLAbsolute(aBase, aUrl) {
+ 
+ function getHelpLinkURL(aHelpTopic) {
+   var url = Services.urlFormatter.formatURLPref("app.support.baseURL");
+-  return url + aHelpTopic;
++  // Dandelion: the topic is deliberately dropped. app.support.baseURL points at
++  // Dandelion's wiki, which has no page per upstream help topic, so appending
++  // one would send every help link to a 404 -- and the topic slugs themselves
++  // still carry upstream's product name. Restore the concatenation once the
++  // wiki has a page per topic.
++  return url;
+ }
+ 
+ function openHelpLink(aHelpTopic) {

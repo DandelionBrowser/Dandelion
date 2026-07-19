@@ -69,3 +69,65 @@ pref("browser.discovery.enabled", false);
 pref("browser.newtabpage.activity-stream.showSponsored", false);
 pref("browser.newtabpage.activity-stream.showSponsoredTopSites", false);
 pref("browser.newtabpage.activity-stream.feeds.section.topstories", false);
+
+// ---------------------------------------------------------------------------
+// Mozilla services
+//
+// Dandelion ships no account service, no VPN and no companion apps, so the UI
+// that sells them is not merely off-brand, it points at nothing.
+// ---------------------------------------------------------------------------
+
+// Firefox Accounts is Mozilla's identity service and it is what Sync is built
+// on. Turning it off removes the sign-in button, the account menu, the Sync
+// setup flow, send-tab and the onboarding sign-in screens together, because
+// they all gate on this one pref -- it is the same switch Mozilla's own
+// DisableFirefoxAccounts enterprise policy throws.
+//
+// Dandelion has no sync service to offer in its place, so this removes
+// cross-device syncing outright rather than replacing it.
+//
+// A restart is required after changing this.
+pref("identity.fxaccounts.enabled", false);
+
+// UITour lets a privileged mozilla.org page drive this browser's interface --
+// open panels, highlight widgets, read prefs. It exists to run Mozilla's own
+// onboarding tours, which Dandelion does not ship, so leaving it on grants a
+// third-party origin control over the chrome for no benefit.
+pref("browser.uitour.enabled", false);
+
+// Cross-promotion for Mozilla VPN, Focus and the mobile apps, shown on
+// about:protections and in the toolbar.
+pref("browser.vpn_promo.enabled", false);
+pref("browser.promo.focus.enabled", false);
+pref("browser.contentblocking.report.show_mobile_app", false);
+pref("browser.contentblocking.report.hide_vpn_banner", true);
+
+// ---------------------------------------------------------------------------
+// Help and support
+//
+// Every help link routes to Dandelion's wiki, so no help link reaches Mozilla.
+// ---------------------------------------------------------------------------
+
+// Upstream appends a help topic to this. Dandelion's wiki has no page per
+// topic, so the two places that do the appending drop it and land on the wiki
+// itself rather than on a 404 -- see the utilityOverlay.js and
+// moz-support-link.mjs patches. Once the wiki has a page per topic, restore
+// the concatenation there and remove both patches.
+pref("app.support.baseURL", "https://github.com/ChristianRelf/Dandelion/wiki/");
+
+// Feedback belongs on the issue tracker rather than the wiki, which is the
+// one place a report can actually be acted on.
+pref("app.feedback.baseURL", "https://github.com/ChristianRelf/Dandelion/issues");
+
+// "Learn more" on the permission prompts.
+pref("browser.geolocation.warning.infoURL", "https://github.com/ChristianRelf/Dandelion/wiki/Location");
+pref("browser.xr.warning.infoURL", "https://github.com/ChristianRelf/Dandelion/wiki/Virtual-reality");
+pref("browser.lna.warning.infoURL", "https://github.com/ChristianRelf/Dandelion/wiki/Local-network");
+
+// The about:protections cards.
+pref("browser.contentblocking.report.lockwise.how_it_works.url", "https://github.com/ChristianRelf/Dandelion/wiki/Passwords");
+pref("browser.contentblocking.report.social.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.cookie.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.tracker.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.fingerprinter.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
+pref("browser.contentblocking.report.cryptominer.url", "https://github.com/ChristianRelf/Dandelion/wiki/Tracking-protection");
