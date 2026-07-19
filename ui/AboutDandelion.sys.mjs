@@ -10,7 +10,7 @@
  * this route is what keeps the page free of merge debt.
  */
 
-const PAGE_URL = "chrome://dandelion/content/newtab.html";
+const PAGE_URL = "chrome://dandelion-page/content/newtab.html";
 
 export function AboutDandelion() {}
 

@@ -7,7 +7,7 @@
  * Shares tokens.css with the browser chrome so the new tab cannot drift away
  * from the window around it. */
 
-@import url("chrome://dandelion/content/tokens.css");
+@import url("chrome://dandelion-page/content/tokens.css");
 
 html,
 body {

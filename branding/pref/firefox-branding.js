@@ -51,6 +51,12 @@ pref("sidebar.revamp", true);
 pref("sidebar.verticalTabs", true);
 pref("sidebar.visibility", "always-show");
 
+// The "drag important tabs here" card in the sidebar ships with a Firefox logo
+// among its example icons, so it puts upstream's branding straight into
+// Dandelion's window. Marking it dismissed by default is the supported way to
+// keep it from ever appearing.
+pref("sidebar.verticalTabs.dragToPinPromo.dismissed", true);
+
 // Enhanced Tracking Protection at its strictest setting. This is the single
 // biggest privacy difference between a default Firefox and Dandelion, and it
 // is the reason to prefer a Gecko base in the first place.

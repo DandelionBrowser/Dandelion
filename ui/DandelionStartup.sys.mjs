@@ -15,7 +15,10 @@ const lazy = {};
 
 ChromeUtils.defineESModuleGetters(lazy, {
   AboutNewTab: "resource:///modules/AboutNewTab.sys.mjs",
-  CustomizableUI: "resource:///modules/CustomizableUI.sys.mjs",
+  // CustomizableUI ships through MOZ_SRC_FILES, not EXTRA_JS_MODULES, so it is
+  // reached over moz-src:// rather than resource:///modules/.
+  CustomizableUI:
+    "moz-src:///browser/components/customizableui/CustomizableUI.sys.mjs",
   EveryWindow: "resource:///modules/EveryWindow.sys.mjs",
 });
 
@@ -96,42 +99,56 @@ export class DandelionStartup {
 
     try {
       if (applied < 1) {
-        this.#restoreReloadButton();
+        this.#applyNavBarLayout();
       }
       Services.prefs.setIntPref(LAYOUT_VERSION_PREF, LAYOUT_VERSION);
     } catch (e) {
       // A failed migration must not take the window down with it, and must not
       // record itself as done -- leaving the pref behind means the next launch
       // tries again.
+      //
+      // Report through Cu.reportError as well as the console: a failure here
+      // is silent by design, and the only outward sign is a layout that never
+      // gets applied.
       console.error("Dandelion: toolbar layout migration failed", e);
+      Cu.reportError(e);
     }
   }
 
   /**
-   * Puts the reload button back.
+   * Puts the navigation cluster at the front of the toolbar.
    *
    * Dandelion ships vertical tabs, and with those on the nav-bar is restored
    * from CustomizableUI's verticalTabsDefaultPlacements, which lists only
-   * firefox-view-button and alltabs-button. Back, forward and the address bar
-   * survive that because they are removable="false"; stop-reload-button is
-   * removable, so it is simply dropped and the browser ships with no way to
-   * reload a page by mouse.
+   * firefox-view-button and alltabs-button. That has two consequences, and
+   * both need fixing together:
+   *
+   * - stop-reload-button is removable, so it is dropped outright and the
+   *   browser ships with no way to reload a page by mouse.
+   * - back-button, forward-button and urlbar-container survive only because
+   *   they are removable="false", and get reconciled onto the end of the bar
+   *   rather than the front. The result puts the address bar first and strands
+   *   the navigation buttons after it.
+   *
+   * Naming the leading widgets in order fixes both: addWidgetToArea moves a
+   * widget that is already placed, so this is a reorder for the two that
+   * exist and an insert for the one that does not.
    */
-  #restoreReloadButton() {
-    const WIDGET = "stop-reload-button";
+  #applyNavBarLayout() {
     const AREA = lazy.CustomizableUI.AREA_NAVBAR;
+    const LEADING = ["back-button", "forward-button", "stop-reload-button"];
 
-    let placements = lazy.CustomizableUI.getWidgetIdsInArea(AREA);
-    if (placements.includes(WIDGET)) {
-      return;
-    }
+    LEADING.forEach((widget, index) => {
+      lazy.CustomizableUI.addWidgetToArea(widget, AREA, index);
+    });
 
-    // Sit immediately after forward-button so the cluster reads
-    // back -> forward -> reload. Both are removable="false" and so are always
-    // present, but fall back to the front of the bar rather than assuming it.
-    let forward = placements.indexOf("forward-button");
-    let position = forward == -1 ? 0 : forward + 1;
-
-    lazy.CustomizableUI.addWidgetToArea(WIDGET, AREA, position);
+    // Firefox View is one of the two widgets verticalTabsDefaultPlacements does
+    // place, and it carries upstream's product name in its label and tooltip --
+    // -firefoxview-brand-name, which is defined in upstream's shared
+    // brandings.ftl rather than in Dandelion's brand.ftl, so it cannot be
+    // renamed without patching a localisation file for one locale only.
+    // Removing the widget keeps the name out of the window at no patch cost.
+    // The feature itself remains reachable; retiring it properly is follow-up.
+    lazy.CustomizableUI.removeWidgetFromArea("firefox-view-button");
   }
 }

@@ -7,9 +7,19 @@
 # rewritten, so a Firefox roll cannot conflict with it.
 
 browser.jar:
+# Chrome-only. Loaded by browser.xhtml, which is privileged, so this stays
+# closed to content.
 % content dandelion %content/dandelion/ contentaccessible=no
-  content/dandelion/tokens.css   (content/tokens.css)
-  content/dandelion/chrome.css   (content/chrome.css)
-  content/dandelion/newtab.html  (content/newtab.html)
-  content/dandelion/newtab.css   (content/newtab.css)
-  content/dandelion/newtab.js    (content/newtab.js)
+  content/dandelion/chrome.css        (content/chrome.css)
+
+# Dandelion's own pages. about:dandelion runs unprivileged in the
+# privilegedabout process by design, and a process at that privilege cannot
+# read a package marked contentaccessible=no -- its stylesheet and script would
+# be blocked while the page itself still loaded. Page resources therefore live
+# in their own package, so opening them up does not also expose the chrome CSS.
+# This is the same posture as chrome://branding.
+% content dandelion-page %content/dandelion-page/ contentaccessible=yes
+  content/dandelion-page/tokens.css   (content/tokens.css)
+  content/dandelion-page/newtab.html  (content/newtab.html)
+  content/dandelion-page/newtab.css   (content/newtab.css)
+  content/dandelion-page/newtab.js    (content/newtab.js)

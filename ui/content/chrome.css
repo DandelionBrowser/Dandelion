@@ -11,7 +11,7 @@
  *
  * Loaded from browser.xhtml. See docs/UI.md. */
 
-@import url("chrome://dandelion/content/tokens.css");
+@import url("chrome://dandelion-page/content/tokens.css");
 
 /* --------------------------------------------------------------------------
  * Window surfaces
