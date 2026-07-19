@@ -12,6 +12,13 @@ ac_add_options --enable-application=browser
 # and must match BRANDING_MOUNT in build/lib/config.py.
 ac_add_options --with-branding=browser/branding/dandelion
 
+# The branding directory only supplies MOZ_APP_DISPLAYNAME, which reaches
+# application.ini as CodeName. Name, the profile directory and the Windows
+# integration hooks all come from MOZ_APP_BASENAME, and the binary name from
+# MOZ_APP_NAME -- which defaults to the lowercased basename, giving
+# dandelion.exe. Without this the browser still calls itself Firefox.
+ac_add_options --with-app-basename=Dandelion
+
 ac_add_options --disable-debug
 ac_add_options --enable-optimize
 

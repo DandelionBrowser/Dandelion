@@ -13,6 +13,10 @@ mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-dandelion-artifact
 ac_add_options --enable-application=browser
 ac_add_options --enable-artifact-builds
 
+# Kept identical to dev.mozconfig so the two configurations agree on identity.
+ac_add_options --with-branding=browser/branding/dandelion
+ac_add_options --with-app-basename=Dandelion
+
 ac_add_options --disable-debug
 ac_add_options --disable-tests
 
